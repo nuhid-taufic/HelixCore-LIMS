@@ -1,0 +1,98 @@
+/* Puru screen-ke center korar magic */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    /* Eta chara layout bhenge jay */
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #0b1320;
+    /* Deep Lab Blue */
+    display: flex;
+    justify-content: center;
+    /* Horizontally center */
+    align-items: center;
+    /* Vertically center */
+    height: 100vh;
+    /* Full screen height */
+    overflow: hidden;
+}
+
+/* Main Login Container */
+.login-box {
+    background-color: #142138;
+    padding: 40px;
+    border-radius: 12px;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6);
+    width: 400px;
+    text-align: center;
+    border: 1px solid #1abc9c;
+    /* Lab green border */
+}
+
+.login-box h1 {
+    color: #1abc9c;
+    font-size: 32px;
+    margin-bottom: 5px;
+    letter-spacing: 2px;
+}
+
+.login-box p {
+    color: #a0b0c0;
+    margin-bottom: 30px;
+    font-size: 14px;
+}
+
+/* Input Group Styling */
+.input-group {
+    margin-bottom: 20px;
+    text-align: left;
+}
+
+.input-group label {
+    display: block;
+    color: #ffffff;
+    margin-bottom: 8px;
+    font-size: 14px;
+}
+
+.input-group input {
+    width: 100%;
+    padding: 12px 15px;
+    background-color: #0b1320;
+    border: 1.5px solid #1a3a4a;
+    border-radius: 6px;
+    color: #ffffff;
+    font-size: 16px;
+    outline: none;
+    transition: 0.3s;
+}
+
+/* Focus hole border green hobe */
+.input-group input:focus {
+    border-color: #1abc9c;
+    box-shadow: 0 0 8px rgba(26, 188, 156, 0.3);
+}
+
+/* Button Styling */
+.login-btn {
+    width: 100%;
+    padding: 14px;
+    background-color: #1abc9c;
+    border: none;
+    border-radius: 6px;
+    color: #ffffff;
+    font-size: 18px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.4s;
+    margin-top: 10px;
+    text-transform: uppercase;
+}
+
+.login-btn:hover {
+    background-color: #16a085;
+    box-shadow: 0 0 15px rgba(26, 188, 156, 0.4);
+}

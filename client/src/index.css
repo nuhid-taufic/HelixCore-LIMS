@@ -1,0 +1,34 @@
+/* Google Fonts Import */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=Fira+Code:wght@400;600&display=swap');
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family: 'Inter', sans-serif;
+  background-color: #0b101e;
+  /* Deep Sci-Fi Background */
+  color: #e2e8f0;
+  /* Crisp light text */
+  box-sizing: border-box;
+}
+
+/* Scrollbar styling for professional look */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #0b101e;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #252d3f;
+  border-radius: 4px;
+}
+
+/* DNA String er jonno special Hacker/Scientific font */
+.dna-font {
+  font-family: 'Fira Code', monospace;
+  letter-spacing: 2px;
+  color: #00d2ff;
+}
