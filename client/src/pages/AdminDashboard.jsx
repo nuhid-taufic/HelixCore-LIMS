@@ -12,16 +12,16 @@ function AdminDashboard() {
     // Fetch core administrative data securely
     const fetchAdminData = async () => {
         try {
-            const statsRes = await axios.get('http://localhost:5001/api/auth/admin/stats');
+            const statsRes = await axios.get('https://helixcore-lims.onrender.com/api/auth/admin/stats');
             setStats(statsRes.data);
 
-            const sciRes = await axios.get('http://localhost:5001/api/auth/admin/scientists');
+            const sciRes = await axios.get('https://helixcore-lims.onrender.com/api/auth/admin/scientists');
             setScientists(sciRes.data);
 
-            const logsRes = await axios.get('http://localhost:5001/api/auth/admin/audit-logs');
+            const logsRes = await axios.get('https://helixcore-lims.onrender.com/api/auth/admin/audit-logs');
             setAuditLogs(logsRes.data);
 
-            const patRes = await axios.get('http://localhost:5001/api/auth/admin/all-patients');
+            const patRes = await axios.get('https://helixcore-lims.onrender.com/api/auth/admin/all-patients');
             setAllPatients(patRes.data);
         } catch (error) {
             console.error("System synchronization failed.", error);
@@ -34,7 +34,7 @@ function AdminDashboard() {
 
     const handleGenerateLink = async () => {
         try {
-            const res = await axios.post('http://localhost:5001/api/auth/admin/generate-invite');
+            const res = await axios.post('https://helixcore-lims.onrender.com/api/auth/admin/generate-invite');
             setInviteLink(res.data.inviteLink);
             fetchAdminData();
         } catch (error) {
@@ -45,7 +45,7 @@ function AdminDashboard() {
     const handleDeleteScientist = async (id) => {
         if (window.confirm("Confirm revocation of personnel access?")) {
             try {
-                await axios.delete(`http://localhost:5001/api/auth/admin/scientists/${id}`);
+                await axios.delete(`https://helixcore-lims.onrender.com/api/auth/admin/scientists/${id}`);
                 fetchAdminData();
             } catch (error) {
                 alert("Revocation error encountered.");

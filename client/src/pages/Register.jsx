@@ -20,7 +20,7 @@ const Register = () => {
     // Extracting authorization token from URL parameters
     const { token } = useParams();
 
-    const API_BASE_URL = 'http://localhost:5001/api/auth';
+    const API_BASE_URL = 'https://helixcore-lims.onrender.com/api/auth';
 
     // --- Action Handlers ---
     const handleInputChange = (e) => {

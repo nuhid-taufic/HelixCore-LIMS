@@ -38,7 +38,7 @@ function Dashboard() {
      */
     const fetchRecentHistory = async () => {
         try {
-            const response = await axios.get('http://localhost:5001/api/dna/recent-history');
+            const response = await axios.get('https://helixcore-lims.onrender.com/api/dna/recent-history');
             setRecentPatients(response.data);
         } catch (error) {
             console.error("System Log Sync Failed:", error);
@@ -79,7 +79,7 @@ function Dashboard() {
     const handleAutoScan = async (e) => {
         e.preventDefault();
         try {
-            const response = await axios.post('http://localhost:5001/api/dna/analyze', {
+            const response = await axios.post('https://helixcore-lims.onrender.com/api/dna/analyze', {
                 name: patientName,
                 phone,
                 dnaSequence: dnaSequence.toUpperCase(),
@@ -110,7 +110,7 @@ function Dashboard() {
             const jsonData = XLSX.utils.sheet_to_json(worksheet);
 
             try {
-                const response = await axios.post('http://localhost:5001/api/dna/analyze-bulk', {
+                const response = await axios.post('https://helixcore-lims.onrender.com/api/dna/analyze-bulk', {
                     patientsData: jsonData,
                     scientistObjectId: getScientistId(),
                     operatorName: getOperatorName()
@@ -135,7 +135,7 @@ function Dashboard() {
         setSearchError('');
         setSearchResults([]);
         try {
-            const response = await axios.get(`http://localhost:5001/api/dna/patient/${searchQuery}`);
+            const response = await axios.get(`https://helixcore-lims.onrender.com/api/dna/patient/${searchQuery}`);
             setSearchResults(response.data);
         } catch (error) {
             setSearchError(error.response?.data?.msg || "Query yielded no results within the databank.");

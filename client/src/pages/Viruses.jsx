@@ -17,7 +17,7 @@ const Viruses = () => {
     const [isFetching, setIsFetching] = useState(true);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
-    const API_BASE_URL = 'http://localhost:5001/api/dna/viruses';
+    const API_BASE_URL = 'https://helixcore-lims.onrender.com/api/dna/viruses';
 
     // --- Data Fetching ---
     const fetchViruses = useCallback(async () => {

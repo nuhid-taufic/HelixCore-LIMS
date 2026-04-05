@@ -13,7 +13,7 @@ const Patients = () => {
     const [error, setError] = useState('');
     const [isLoading, setIsLoading] = useState(false);
 
-    const API_BASE_URL = 'http://localhost:5001/api/dna/patient';
+    const API_BASE_URL = 'https://helixcore-lims.onrender.com/api/dna/patient';
 
     // --- Action Handlers ---
     const handleSearch = async (e) => {
