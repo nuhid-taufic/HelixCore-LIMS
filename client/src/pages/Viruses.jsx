@@ -39,10 +39,16 @@ const Viruses = () => {
 
     // --- Action Handlers ---
     const handleInputChange = (e) => {
-        const { name, value } = e.target;
+        let { name, value } = e.target;
+
+        // MAGIC HACK: Shudhu ATCG allow korar jonno
+        if (name === 'pattern') {
+            value = value.replace(/[^ATCG]/gi, '').toUpperCase();
+        }
+
         setFormData(prev => ({
             ...prev,
-            [name]: name === 'pattern' ? value.toUpperCase() : value
+            [name]: value
         }));
 
         // Clear status messages when user starts typing
@@ -67,6 +73,18 @@ const Viruses = () => {
             setStatus({ type: 'error', message: 'Registration Failed: Could not add pathogen.' });
         } finally {
             setIsSubmitting(false);
+        }
+    };
+
+    const handleDeleteVirus = async (id) => {
+        if (!window.confirm("CRITICAL: Are you sure you want to eradicate this pathogen from the databank?")) return;
+
+        try {
+            await axios.delete(`https://helixcore-lims.onrender.com/api/dna/viruses/${id}`);
+            alert("Pathogen data eradicated.");
+            fetchViruses();
+        } catch (err) {
+            alert("Failed to delete pathogen.");
         }
     };
 
@@ -107,7 +125,11 @@ const Viruses = () => {
                     ) : (
                         <div style={styles.cardGrid}>
                             {viruses.map((virus) => (
-                                <PathogenCard key={virus._id} virus={virus} />
+                                <PathogenCard
+                                    key={virus._id}
+                                    virus={virus}
+                                    onDelete={handleDeleteVirus} // Pass korlam delete function-ta
+                                />
                             ))}
                         </div>
                     )}
@@ -146,7 +168,7 @@ const PathogenForm = ({ formData, onChange, onSubmit, isSubmitting, status }) =>
             </div>
 
             <div style={styles.inputGroup}>
-                <label style={styles.label}>NUCLEOTIDE PATTERN</label>
+                <label style={styles.label}>NUCLEOTIDE PATTERN (A, T, C, G)</label>
                 <input
                     type="text"
                     name="pattern"
@@ -184,7 +206,7 @@ const PathogenForm = ({ formData, onChange, onSubmit, isSubmitting, status }) =>
     </div>
 );
 
-const PathogenCard = ({ virus }) => {
+const PathogenCard = ({ virus, onDelete }) => {
     // Determine thematic color based on severity level
     const severityColor =
         virus.severity === 'High' ? THEME.danger :
@@ -192,10 +214,20 @@ const PathogenCard = ({ virus }) => {
                 THEME.success;
 
     return (
-        <div style={{ ...styles.card, borderLeft: `4px solid ${severityColor}` }}>
-            <h4 style={{ margin: '0 0 10px 0', color: '#fff', fontSize: '15px' }}>
+        <div style={{ ...styles.card, borderLeft: `4px solid ${severityColor}`, position: 'relative' }}>
+            <h4 style={{ margin: '0 0 10px 0', color: '#fff', fontSize: '15px', paddingRight: '60px' }}>
                 {virus.name}
             </h4>
+
+            {/* Delete Button */}
+            <button
+                onClick={() => onDelete(virus._id)}
+                style={styles.deleteBtn}
+                title="Eradicate Pathogen"
+            >
+                DELETE
+            </button>
+
             <p style={{ margin: 0, fontSize: '12px', color: THEME.textMuted }}>
                 Sequence: <span className="dna-font" style={{ fontSize: '14px', color: THEME.primary, marginLeft: '5px' }}>{virus.pattern}</span>
             </p>
@@ -286,6 +318,20 @@ const styles = {
         fontWeight: '700',
         textTransform: 'uppercase',
         transition: 'background 0.3s ease, color 0.3s ease'
+    },
+    deleteBtn: {
+        position: 'absolute',
+        top: '10px',
+        right: '10px',
+        background: 'rgba(255, 76, 76, 0.1)',
+        color: THEME.danger,
+        border: `1px solid ${THEME.danger}`,
+        padding: '4px 8px',
+        borderRadius: '4px',
+        fontSize: '10px',
+        fontWeight: 'bold',
+        cursor: 'pointer',
+        transition: 'all 0.2s ease'
     },
     alertBox: (isError) => ({
         padding: '12px',

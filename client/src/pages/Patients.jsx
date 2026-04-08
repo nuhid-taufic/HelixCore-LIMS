@@ -5,7 +5,7 @@ import QRCode from 'qrcode';
 
 /**
  * Patients Directory Component
- * Optimized with Automated PDF Reporting and Relational Data Population.
+ * Optimized with Automated PDF Reporting, Relational Data Population, and Admin Deletion.
  */
 const Patients = () => {
     const [searchKey, setSearchKey] = useState('');
@@ -33,6 +33,20 @@ const Patients = () => {
             setError("Search yielded no results. Please verify the ID, Name, or Phone.");
         } finally {
             setIsLoading(false);
+        }
+    };
+
+    // --- Admin Delete Logic ---
+    const handleDeletePatient = async (id) => {
+        if (!window.confirm("WARNING: Are you sure you want to permanently delete this genomic record?")) return;
+
+        try {
+            await axios.delete(`${API_BASE_URL}/${id}`);
+            alert("Genomic record expunged successfully.");
+            // UI theke sathe sathe delete kora patient ke soriye deya
+            setPatientsList(prevList => prevList.filter(p => p._id !== id));
+        } catch (err) {
+            alert("Failed to delete record.");
         }
     };
 
@@ -145,7 +159,11 @@ const Patients = () => {
             <div className="results-container">
                 {patientsList.map((patient) => (
                     <div key={patient._id} style={styles.resultRow}>
-                        <PatientProfile patient={patient} onDownload={() => generatePDF(patient)} />
+                        <PatientProfile
+                            patient={patient}
+                            onDownload={() => generatePDF(patient)}
+                            onDelete={() => handleDeletePatient(patient._id)} // Delete props pass korlam
+                        />
 
                         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '25px' }}>
                             <ScanHistory history={patient.testHistory} />
@@ -160,7 +178,7 @@ const Patients = () => {
 
 // --- Modular Sub-Components ---
 
-const PatientProfile = ({ patient, onDownload }) => (
+const PatientProfile = ({ patient, onDownload, onDelete }) => (
     <div style={{ flex: 1, ...styles.panel, marginBottom: 0 }}>
         <h3 style={styles.sectionTitle}>Subject Profile</h3>
 
@@ -177,17 +195,29 @@ const PatientProfile = ({ patient, onDownload }) => (
             </div>
         </div>
 
-        {/* New: Integrated Export Button */}
-        <button
-            onClick={onDownload}
-            style={{
-                marginTop: '25px', width: '100%', padding: '14px',
-                background: THEME.primary, color: '#0b101e', border: 'none',
-                borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold', fontSize: '14px'
-            }}
-        >
-            Export Diagnostic PDF Report
-        </button>
+        {/* Buttons Section: PDF Export & Admin Delete */}
+        <div style={{ display: 'flex', gap: '10px', marginTop: '25px' }}>
+            <button
+                onClick={onDownload}
+                style={{
+                    flex: 1, padding: '12px',
+                    background: THEME.primary, color: '#0b101e', border: 'none',
+                    borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold', fontSize: '13px'
+                }}
+            >
+                Export PDF
+            </button>
+            <button
+                onClick={onDelete}
+                style={{
+                    flex: 1, padding: '12px',
+                    background: 'rgba(255, 76, 76, 0.1)', color: THEME.danger, border: `1px solid ${THEME.danger}`,
+                    borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold', fontSize: '13px'
+                }}
+            >
+                DELETE RECORD
+            </button>
+        </div>
     </div>
 );
 
@@ -228,7 +258,6 @@ const GeneticRelatives = ({ relatives }) => (
         <h3 style={styles.sectionTitle}>Identified Genetic Matches</h3>
         {relatives && relatives.length > 0 ? (
             relatives.map((rel, i) => {
-                // Bug Fix: Using populated matchedPatientId to prevent empty names/IDs
                 const relName = rel.matchedPatientId?.name || rel.uiPatientName || 'Unknown Subject';
                 const relId = rel.matchedPatientId?.patientId || rel.uiPatientId || 'N/A';
 

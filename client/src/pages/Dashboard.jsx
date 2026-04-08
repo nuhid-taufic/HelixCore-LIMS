@@ -286,7 +286,14 @@ function Dashboard() {
                             </div>
                             <div style={{ marginBottom: '25px' }}>
                                 <label style={{ fontSize: '13px', color: '#94a3b8', fontWeight: '600' }}>NUCLEOTIDE SEQUENCE (A, T, C, G)</label>
-                                <input type="text" value={dnaSequence} onChange={(e) => setDnaSequence(e.target.value)} required placeholder="ATGC..." className="dna-font" style={{ ...inputStyle, fontSize: '16px', textTransform: 'uppercase', borderColor: '#00d2ff' }} />
+                                <input
+                                    type="text"
+                                    placeholder="NUCLEOTIDE SEQUENCE (A, T, C, G)"
+                                    value={dnaSequence}
+                                    onChange={(e) => setDnaSequence(e.target.value.replace(/[^ATCG]/gi, '').toUpperCase())}
+                                    required
+                                    style={{ ...styles.input, fontFamily: 'monospace', letterSpacing: '2px' }}
+                                />
                             </div>
                             <button type="submit" style={{ width: '100%', padding: '14px', background: 'linear-gradient(90deg, #00d2ff 0%, #007bff 100%)', color: '#fff', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '15px', fontWeight: '700', letterSpacing: '1px', textTransform: 'uppercase' }}>
                                 Execute Analysis
