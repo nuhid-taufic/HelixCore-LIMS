@@ -34,7 +34,7 @@ function Dashboard() {
     const [recentPatients, setRecentPatients] = useState([]);
 
     /**
-     * Synchronizes the dashboard with the latest 10 clinical records.
+     * Synchronizes the dashboard with the latest clinical records.
      */
     const fetchRecentHistory = async () => {
         try {
@@ -144,7 +144,22 @@ function Dashboard() {
         }
     };
 
-    // --- PDF Reporting Engine (Fail-Safe Implementation) ---
+    // --- Admin Delete Logic directly from Dashboard ---
+    const handleDeletePatient = async (id) => {
+        if (!window.confirm("WARNING: Are you sure you want to permanently delete this genomic record?")) return;
+
+        try {
+            await axios.delete(`https://helixcore-lims.onrender.com/api/dna/patient/${id}`);
+            alert("Genomic record expunged successfully.");
+            // UI theke sathe sathe remove kora
+            setSearchResults(prevList => prevList.filter(p => p._id !== id));
+            fetchRecentHistory(); // Activity log o update kora
+        } catch (err) {
+            alert("Failed to delete record.");
+        }
+    };
+
+    // --- PDF Reporting Engine ---
 
     const downloadReport = async () => {
         if (!result || !result.patient) return;
@@ -292,7 +307,7 @@ function Dashboard() {
                                     value={dnaSequence}
                                     onChange={(e) => setDnaSequence(e.target.value.replace(/[^ATCG]/gi, '').toUpperCase())}
                                     required
-                                    style={{ ...styles.input, fontFamily: 'monospace', letterSpacing: '2px' }}
+                                    style={{ ...inputStyle, fontFamily: 'monospace', letterSpacing: '2px' }}
                                 />
                             </div>
                             <button type="submit" style={{ width: '100%', padding: '14px', background: 'linear-gradient(90deg, #00d2ff 0%, #007bff 100%)', color: '#fff', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '15px', fontWeight: '700', letterSpacing: '1px', textTransform: 'uppercase' }}>
@@ -393,12 +408,21 @@ function Dashboard() {
                                                 </div>
                                             </div>
 
-                                            <button
-                                                onClick={() => downloadSearchReport(patient)}
-                                                style={{ background: 'linear-gradient(90deg, #00d2ff 0%, #007bff 100%)', color: '#fff', border: 'none', padding: '8px 15px', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold', fontSize: '12px' }}
-                                            >
-                                                Download PDF
-                                            </button>
+                                            <div style={{ display: 'flex', gap: '10px' }}>
+                                                <button
+                                                    onClick={() => downloadSearchReport(patient)}
+                                                    style={{ background: 'linear-gradient(90deg, #00d2ff 0%, #007bff 100%)', color: '#fff', border: 'none', padding: '8px 15px', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold', fontSize: '12px' }}
+                                                >
+                                                    Download PDF
+                                                </button>
+                                                {/* NEW: Delete Button inside Dashboard Search */}
+                                                <button
+                                                    onClick={() => handleDeletePatient(patient._id)}
+                                                    style={{ background: 'rgba(255, 76, 76, 0.1)', color: '#ff4c4c', border: '1px solid #ff4c4c', padding: '8px 15px', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold', fontSize: '12px' }}
+                                                >
+                                                    DELETE
+                                                </button>
+                                            </div>
                                         </div>
                                     );
                                 })}
