@@ -27,7 +27,8 @@ const patientSchema = new mongoose.Schema(
             type: String,
             required: [true, 'DNA sequence is required.'],
             uppercase: true,
-            trim: true
+            trim: true,
+            match: [/^[ATCG]+$/, 'CRITICAL ERROR: Invalid nucleotide sequence. Only A, T, C, G are permitted.']
         },
         relativesFound: [
             {

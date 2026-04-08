@@ -4,48 +4,74 @@ const Patient = require('../models/Patient');
 const Virus = require('../models/Virus');
 
 // ==========================================
+// BIO-INFORMATICS ALGORITHM: Needleman-Wunsch
+// ==========================================
+/**
+ * Executes Global Sequence Alignment for DNA matching
+ * @param {string} seq1 - Nucleotide Sequence 1
+ * @param {string} seq2 - Nucleotide Sequence 2
+ * @returns {number} Match Percentage
+ */
+const calculateGeneticMatch = (seq1, seq2) => {
+    const matchReward = 1;
+    const mismatchPenalty = -1;
+    const gapPenalty = -1;
+
+    const n = seq1.length;
+    const m = seq2.length;
+    const dp = Array(n + 1).fill(null).map(() => Array(m + 1).fill(0));
+
+    for (let i = 0; i <= n; i++) dp[i][0] = i * gapPenalty;
+    for (let j = 0; j <= m; j++) dp[0][j] = j * gapPenalty;
+
+    for (let i = 1; i <= n; i++) {
+        for (let j = 1; j <= m; j++) {
+            const match = dp[i - 1][j - 1] + (seq1[i - 1] === seq2[j - 1] ? matchReward : mismatchPenalty);
+            const deleteSeq = dp[i - 1][j] + gapPenalty;
+            const insertSeq = dp[i][j - 1] + gapPenalty;
+            dp[i][j] = Math.max(match, deleteSeq, insertSeq);
+        }
+    }
+
+    const score = dp[n][m];
+    const maxPossibleScore = Math.max(n, m) * matchReward;
+    const matchPercentage = Math.max(0, (score / maxPossibleScore) * 100);
+
+    return matchPercentage;
+};
+
+// ==========================================
 // 1. PATHOGEN / VIRUS ROUTES
 // ==========================================
-
-/**
- * @route   GET /api/dna/viruses
- * @desc    Fetch all available viruses from the databank
- */
 router.get('/viruses', async (req, res) => {
-    try {
-        res.json(await Virus.find());
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
+    try { res.json(await Virus.find()); }
+    catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-/**
- * @route   POST /api/dna/viruses
- * @desc    Add a new virus pattern to the databank
- */
 router.post('/viruses', async (req, res) => {
     try {
         const { name, pattern, severity } = req.body;
-        const newVirus = new Virus({
-            name,
-            pattern: pattern.toUpperCase(),
-            severity
-        });
+        // Validate Pathogen pattern to be strictly ATCG
+        if (!/^[ATCG]+$/i.test(pattern)) {
+            return res.status(400).json({ error: "Invalid Pathogen Sequence. Use ATCG only." });
+        }
+        const newVirus = new Virus({ name, pattern: pattern.toUpperCase(), severity });
         await newVirus.save();
-        res.status(201).json({ msg: "Virus pattern successfully registered.", virus: newVirus });
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
+        res.status(201).json({ msg: "Virus pattern registered.", virus: newVirus });
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// [NEW] Delete Virus (Admin Power)
+router.delete('/viruses/:id', async (req, res) => {
+    try {
+        await Virus.findByIdAndDelete(req.params.id);
+        res.json({ msg: "Pathogen successfully eradicated from databank." });
+    } catch (err) { res.status(500).json({ error: "Failed to delete pathogen." }); }
 });
 
 // ==========================================
 // 2. SYSTEM LOGS & QUERY ROUTES
 // ==========================================
-
-/**
- * @route   GET /api/dna/recent-history
- * @desc    Fetch individual latest scans for the terminal activity log.
- */
 router.get('/recent-history', async (req, res) => {
     try {
         const patients = await Patient.find().sort({ updatedAt: -1 }).limit(20);
@@ -54,26 +80,17 @@ router.get('/recent-history', async (req, res) => {
             if (p.testHistory) {
                 p.testHistory.forEach(test => {
                     allScans.push({
-                        patientId: p.patientId,
-                        name: p.name,
-                        phone: p.phone,
-                        testDate: test.testDate,
-                        status: test.resultStatus
+                        patientId: p.patientId, name: p.name, phone: p.phone,
+                        testDate: test.testDate, status: test.resultStatus
                     });
                 });
             }
         });
         allScans.sort((a, b) => new Date(b.testDate) - new Date(a.testDate));
         res.json(allScans.slice(0, 10));
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
+    } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-/**
- * @route   GET /api/dna/patient/:searchKey
- * @desc    Smart search with relational population for relatives and viruses.
- */
 router.get('/patient/:searchKey', async (req, res) => {
     try {
         const key = req.params.searchKey.trim();
@@ -83,61 +100,58 @@ router.get('/patient/:searchKey', async (req, res) => {
                 { phone: { $regex: key, $options: 'i' } },
                 { name: { $regex: key, $options: 'i' } }
             ]
-        })
-            .populate('testHistory.virusTested')
-            .populate('relativesFound.matchedPatientId');
+        }).populate('testHistory.virusTested').populate('relativesFound.matchedPatientId');
 
-        if (!patients || patients.length === 0) {
-            return res.status(404).json({ msg: "No diagnostic records found." });
-        }
+        if (!patients || patients.length === 0) return res.status(404).json({ msg: "No records found." });
         res.json(patients);
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// [NEW] Delete Patient Record (Admin Power)
+router.delete('/patient/:id', async (req, res) => {
+    try {
+        await Patient.findByIdAndDelete(req.params.id);
+        res.json({ msg: "Genomic record expunged successfully." });
+    } catch (err) { res.status(500).json({ error: "Failed to delete record." }); }
 });
 
 // ==========================================
-// 3. ANALYTICAL EXECUTION ROUTES
+// 3. ANALYTICAL EXECUTION ROUTES (With NW Algorithm)
 // ==========================================
-
-/**
- * @route   POST /api/dna/analyze
- * @desc    Execute single-subject DNA scan and relational matching.
- */
 router.post('/analyze', async (req, res) => {
     try {
         const { name, phone, dnaSequence, scientistObjectId, operatorName } = req.body;
-        let patient = await Patient.findOne({ phone });
 
+        if (!/^[ATCG]+$/i.test(dnaSequence)) {
+            return res.status(400).json({ error: "Invalid Sequence. Only A,T,C,G permitted." });
+        }
+
+        let patient = await Patient.findOne({ phone });
         if (patient) {
-            patient.name = name;
-            patient.dnaSequence = dnaSequence;
+            patient.name = name; patient.dnaSequence = dnaSequence.toUpperCase();
         } else {
-            const currentPatientId = 'P-' + Math.floor(100000 + Math.random() * 900000);
-            patient = new Patient({ patientId: currentPatientId, name, phone, dnaSequence });
+            patient = new Patient({ patientId: 'P-' + Math.floor(100000 + Math.random() * 900000), name, phone, dnaSequence: dnaSequence.toUpperCase() });
         }
 
         const allViruses = await Virus.find();
-        const detectedViruses = allViruses.filter(v => dnaSequence.includes(v.pattern));
+        const detectedViruses = allViruses.filter(v => dnaSequence.toUpperCase().includes(v.pattern));
 
         const allPatients = await Patient.find({ phone: { $ne: phone } });
-        const relativesFound = allPatients.map(other => {
-            let matches = 0;
-            const minLen = Math.min(dnaSequence.length, other.dnaSequence.length);
-            for (let i = 0; i < minLen; i++) if (dnaSequence[i] === other.dnaSequence[i]) matches++;
-            const percent = (matches / Math.max(dnaSequence.length, other.dnaSequence.length)) * 100;
+        const relativesFound = [];
 
+        // Executing Needleman-Wunsch Alignment for Relatives
+        for (const other of allPatients) {
+            const percent = calculateGeneticMatch(dnaSequence.toUpperCase(), other.dnaSequence);
             if (percent >= 50) {
-                return {
-                    relationType: percent >= 90 ? 'Identical/Self' : 'Parent/Child',
+                relativesFound.push({
+                    relationType: percent >= 90 ? 'Identical/Self' : 'Parent/Child/Sibling',
                     matchedPatientId: other._id,
                     uiPatientId: other.patientId,
                     uiPatientName: other.name,
                     matchPercentage: percent.toFixed(2)
-                };
+                });
             }
-            return null;
-        }).filter(r => r !== null);
+        }
 
         patient.relativesFound = relativesFound;
         const status = detectedViruses.length > 0 ? "Danger" : "Safe";
@@ -151,15 +165,9 @@ router.post('/analyze', async (req, res) => {
 
         await patient.save();
         res.json({ isInfected: detectedViruses.length > 0, detectedViruses, patient });
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
+    } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-/**
- * @route   POST /api/dna/analyze-bulk
- * @desc    Batch process Excel data with defensive header parsing.
- */
 router.post('/analyze-bulk', async (req, res) => {
     try {
         const { patientsData, scientistObjectId, operatorName } = req.body;
@@ -171,7 +179,7 @@ router.post('/analyze-bulk', async (req, res) => {
             const phone = row.phone || row.Phone || row.PHONE;
             const dna = row.dnaSequence || row.dna || row.DNA;
 
-            if (!name || !dna) continue;
+            if (!name || !dna || !/^[ATCG]+$/i.test(dna)) continue; // Skips invalid DNA rows
 
             let patient = await Patient.findOne({ phone: phone?.toString() });
             if (!patient) {
@@ -192,10 +200,8 @@ router.post('/analyze-bulk', async (req, res) => {
             await patient.save();
             results.push({ patientId: patient.patientId, name, isInfected: detected.length > 0 });
         }
-        res.json({ msg: `Processed ${results.length} records successfully.`, results });
-    } catch (err) {
-        res.status(500).json({ error: "Batch validation failed. Verify DNA integrity." });
-    }
+        res.json({ msg: `Processed ${results.length} valid records successfully.`, results });
+    } catch (err) { res.status(500).json({ error: "Batch validation failed. Verify DNA integrity." }); }
 });
 
 module.exports = router;
