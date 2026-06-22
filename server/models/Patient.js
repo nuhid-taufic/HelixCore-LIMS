@@ -34,7 +34,8 @@ const patientSchema = new mongoose.Schema(
             {
                 relationType: {
                     type: String,
-                    enum: ['Parent/Child', 'Identical/Self', 'Sibling', 'Relative', 'Unknown']
+                    // FIX: Added 'Parent/Child/Sibling' to the enum array
+                    enum: ['Parent/Child', 'Identical/Self', 'Sibling', 'Relative', 'Unknown', 'Parent/Child/Sibling']
                 },
                 matchedPatientId: {
                     type: mongoose.Schema.Types.ObjectId,
